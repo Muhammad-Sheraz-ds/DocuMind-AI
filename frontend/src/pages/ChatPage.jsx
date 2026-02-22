@@ -101,25 +101,22 @@ export default function ChatPage() {
                                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                                 </div>
 
-                                {/* Sources */}
+                                {/* Resources */}
                                 {msg.sources && msg.sources.length > 0 && (
                                     <div className="chat-sources">
-                                        {msg.sources.map((src, j) => (
-                                            <div key={j} className="source-chip">
-                                                <FiFileText className="source-chip-icon" />
-                                                <div>
-                                                    <strong>{src.document}</strong>
-                                                    {src.page && ` • Page ${src.page}`}
-                                                    {' • '}Relevance: {(src.relevance_score * 100).toFixed(0)}%
-                                                    <br />
-                                                    <span style={{ opacity: 0.7 }}>
-                                                        {src.content?.length > 150
-                                                            ? src.content.slice(0, 150) + '...'
-                                                            : src.content}
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            Resources
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {msg.sources.map((src, j) => (
+                                                <div key={j} className="source-chip" title={src.content}>
+                                                    <FiFileText className="source-chip-icon" />
+                                                    <span>
+                                                        {src.document} {src.page && `• P.${src.page}`}
                                                     </span>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 

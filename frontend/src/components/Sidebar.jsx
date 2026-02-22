@@ -47,18 +47,6 @@ export default function Sidebar({ activePage, onPageChange }) {
                     <span className={`status-dot ${isOnline ? '' : 'offline'}`} />
                     {isOnline ? 'API Connected' : 'API Offline'}
                 </div>
-                {health?.services && (
-                    <>
-                        <div className="status-indicator">
-                            <span className={`status-dot ${health.services.llm === 'connected' ? '' : 'offline'}`} />
-                            LLM: {health.services.llm}
-                        </div>
-                        <div className="status-indicator">
-                            <span className="status-dot" />
-                            Vector Store: {health.services.vector_store}
-                        </div>
-                    </>
-                )}
             </div>
         </aside>
     );

@@ -10,20 +10,16 @@ from loguru import logger
 from app.config import settings
 
 
-SYSTEM_PROMPT = """You are DocuMind AI, an intelligent document assistant. Your role is to answer questions based ONLY on the provided context from the user's documents.
+SYSTEM_PROMPT = """You are DocuMind AI, a premium enterprise document assistant. 
+
+Your objective is to provide professional, accurate, and direct answers based ONLY on the provided context.
 
 CRITICAL RULES:
-1. ONLY answer based on the provided context. If the answer is not in the context, say "I couldn't find this information in your documents."
-2. ALWAYS cite which source document and page the information came from.
-3. Be concise and accurate. Use bullet points for clarity when appropriate.
-4. If the context is ambiguous, acknowledge the ambiguity.
-5. NEVER make up information or hallucinate facts not in the context.
-6. Format your response in clear, readable markdown.
-
-Response format:
-- Start with a direct answer
-- Support with specific details from the context
-- End with source references"""
+1. NO INLINE CITATIONS. Do not include tags like [Source 1] inside your sentences.
+2. ANSWER ONLY FROM CONTEXT. If the answer is missing, state: "I couldn't find any relevant information in your documents. Please upload documents first or rephrase your question."
+3. PROFESSIONAL TONE. Use clear, elegant markdown. Use bullet points for complex lists.
+4. NO REFERENCES LIST. Do not add a "Sources" or "References" section at the end. The system handles this automatically.
+5. CONCISE & EXPERT. Provide the best possible synthesis of the information."""
 
 
 class LLMService:
@@ -151,16 +147,12 @@ Respond with ONLY a number between 0.0 and 1.0, nothing else."""
             return 0.5  # Default to neutral on error
 
     def _format_context(self, chunks: list[dict]) -> str:
-        """Format context chunks into a readable string."""
+        """Format context chunks into a clean string for the LLM."""
         parts = []
         for i, chunk in enumerate(chunks, 1):
-            source = chunk.get("document", "Unknown")
-            page = chunk.get("page", "?")
-            score = chunk.get("score", 0.0)
-            content = chunk.get("content", "")
-            parts.append(
-                f"[Source {i}: {source}, Page {page} (relevance: {score:.2f})]\n{content}"
-            )
+            content = chunk.get("content", "").strip()
+            if content:
+                parts.append(f"DOCUMENT {i}:\n{content}")
         return "\n\n---\n\n".join(parts)
 
 
