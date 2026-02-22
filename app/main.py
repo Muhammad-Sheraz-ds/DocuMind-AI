@@ -64,52 +64,24 @@ app.add_middleware(
 app.include_router(router, prefix="/api/v1")
 
 
+from fastapi.responses import RedirectResponse
+
+@app.get("/")
+async def root():
+    """Redirect root to API documentation."""
+    return RedirectResponse(url="/docs")
+
 @app.get("/health", tags=["Health"])
 async def detailed_health():
     """Detailed health check with service status."""
     from app.services.llm import get_llm_service
-
     llm = get_llm_service()
-
     return {
         "status": "healthy",
         "services": {
             "llm": "connected" if llm.client else "not_configured",
             "vector_store": "connected",
             "database": "connected",
-        },
-        "config": {
-            "llm_model": settings.llm_model,
-            "embedding_model": settings.embedding_model,
-            "chunk_size": settings.chunk_size,
-            "top_k": settings.top_k,
-        },
-    }
-
-
-# ─── Serve React Frontend (for HuggingFace Spaces / Docker) ───
-if FRONTEND_DIR.exists():
-    # Serve static assets (JS, CSS, images)
-    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="assets")
-
-    # Catch-all: serve index.html for any non-API route (SPA routing)
-    @app.get("/{full_path:path}", tags=["Frontend"])
-    async def serve_frontend(request: Request, full_path: str):
-        """Serve React frontend for all non-API routes."""
-        # If it's a static file that exists, serve it
-        file_path = FRONTEND_DIR / full_path
-        if file_path.is_file():
-            return FileResponse(file_path)
-        # Otherwise serve index.html (SPA routing)
-        return FileResponse(FRONTEND_DIR / "index.html")
-else:
-    @app.get("/", tags=["Health"])
-    async def health_check():
-        """Health check (no frontend build found)."""
-        return {
-            "status": "healthy",
-            "app": settings.app_name,
-            "version": "1.0.0",
-            "message": "API is running. Frontend not built — run 'cd frontend && npm run build'",
         }
+    }
 
