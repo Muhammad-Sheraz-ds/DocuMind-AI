@@ -61,7 +61,7 @@ app.add_middleware(
 )
 
 # Register API routes
-app.include_router(router, prefix="/api/v1")
+app.include_router(router, prefix="")
 
 
 from fastapi.responses import RedirectResponse
