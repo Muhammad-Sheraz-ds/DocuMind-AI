@@ -1,33 +1,35 @@
-FROM python:3.11-slim
+# --- Stage 1: Build Frontend ---
+FROM node:20-slim AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
+# --- Stage 2: Final Runtime ---
+FROM python:3.11-slim
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (build-essential needed for some python wheels)
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js for frontend build
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy and install Python dependencies
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
 
-# Build React frontend
-RUN cd frontend && npm install && npm run build
+# Copy built frontend from Stage 1
+COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 
-# Create data directories
-RUN mkdir -p data/uploads data/chroma_db
+# Create data directories with proper permissions
+RUN mkdir -p data/uploads data/chroma_db && chmod -R 777 data
 
 # HuggingFace Spaces uses port 7860
 EXPOSE 7860
 
-# Start FastAPI and serve frontend from static files
+# Start FastAPI
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
