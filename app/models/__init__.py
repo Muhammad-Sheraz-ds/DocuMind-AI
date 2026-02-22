@@ -1,0 +1,1 @@
+"""DocuMind AI — Models Package"""
