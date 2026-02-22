@@ -3,15 +3,22 @@ DocuMind AI — FastAPI Application Entry Point
 
 Run with: uvicorn app.main:app --reload
 """
+import os
+from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from loguru import logger
 
 from app.config import settings
 from app.models.database import init_db
 from app.api.routes import router
+
+# Path to built React frontend
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
 
 @asynccontextmanager
@@ -57,26 +64,12 @@ app.add_middleware(
 app.include_router(router, prefix="/api/v1")
 
 
-@app.get("/", tags=["Health"])
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "app": settings.app_name,
-        "version": "1.0.0",
-        "llm_model": settings.llm_model,
-        "embedding_model": settings.embedding_model,
-    }
-
-
 @app.get("/health", tags=["Health"])
 async def detailed_health():
     """Detailed health check with service status."""
     from app.services.llm import get_llm_service
-    from app.services.retrieval import get_retrieval_service
 
     llm = get_llm_service()
-    retrieval = get_retrieval_service()
 
     return {
         "status": "healthy",
@@ -92,3 +85,31 @@ async def detailed_health():
             "top_k": settings.top_k,
         },
     }
+
+
+# ─── Serve React Frontend (for HuggingFace Spaces / Docker) ───
+if FRONTEND_DIR.exists():
+    # Serve static assets (JS, CSS, images)
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="assets")
+
+    # Catch-all: serve index.html for any non-API route (SPA routing)
+    @app.get("/{full_path:path}", tags=["Frontend"])
+    async def serve_frontend(request: Request, full_path: str):
+        """Serve React frontend for all non-API routes."""
+        # If it's a static file that exists, serve it
+        file_path = FRONTEND_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        # Otherwise serve index.html (SPA routing)
+        return FileResponse(FRONTEND_DIR / "index.html")
+else:
+    @app.get("/", tags=["Health"])
+    async def health_check():
+        """Health check (no frontend build found)."""
+        return {
+            "status": "healthy",
+            "app": settings.app_name,
+            "version": "1.0.0",
+            "message": "API is running. Frontend not built — run 'cd frontend && npm run build'",
+        }
+

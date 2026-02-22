@@ -1,3 +1,15 @@
+---
+title: DocuMind AI
+emoji: 📚
+colorFrom: purple
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: Enterprise RAG Platform — AI Document Q&A with Citations
+---
+
 # 📚 DocuMind AI — Enterprise RAG Platform
 
 > Upload documents. Ask questions. Get AI answers with citations. Measure accuracy. Track analytics.

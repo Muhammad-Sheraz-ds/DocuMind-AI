@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 // Configurable API URL: set VITE_API_URL in .env for deployment
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-const API_ROOT = API_BASE.replace('/api/v1', '');
+// Default: relative path (works when frontend + backend on same domain, e.g. HuggingFace Spaces)
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_ROOT = API_BASE.replace('/api/v1', '') || '';
 
 const api = axios.create({
     baseURL: API_BASE,
