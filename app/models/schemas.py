@@ -38,7 +38,7 @@ class DocumentInfo(BaseModel):
 
 class AskRequest(BaseModel):
     """Request to ask a question."""
-    question: str = Field(..., min_length=3, max_length=1000, description="The question to ask")
+    question: str = Field(..., min_length=1, max_length=1000, description="The question to ask")
     document_id: Optional[int] = Field(None, description="Optional: limit search to a specific document")
     top_k: int = Field(5, ge=1, le=20, description="Number of chunks to retrieve")
 

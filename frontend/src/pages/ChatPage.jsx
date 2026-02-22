@@ -38,11 +38,25 @@ export default function ChatPage() {
                 },
             ]);
         } catch (err) {
+            let errorMsg = 'Could not connect to the API server.';
+
+            if (err.response?.data?.detail) {
+                const detail = err.response.data.detail;
+                if (Array.isArray(detail)) {
+                    // Handle FastAPI validation error list
+                    errorMsg = detail.map(e => `${e.loc[e.loc.length - 1]}: ${e.msg}`).join(', ');
+                } else {
+                    errorMsg = detail;
+                }
+            } else if (err.message) {
+                errorMsg = err.message;
+            }
+
             setMessages(prev => [
                 ...prev,
                 {
                     role: 'assistant',
-                    content: `⚠️ Error: ${err.response?.data?.detail || err.message || 'Could not connect to the API server.'}`,
+                    content: `⚠️ Error: ${errorMsg}`,
                     sources: [],
                 },
             ]);
